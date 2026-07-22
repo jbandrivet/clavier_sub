@@ -8,7 +8,7 @@
   /* Style Rétro Épuré */
   body {
     font-family: 'MS Sans Serif', 'Segoe UI', sans-serif;
-    background: #c0c0c0; /* Fond gris rétro sur toute la page */
+    background: #c0c0c0;
     margin: 0;
     padding: 20px;
     display: flex;
@@ -19,7 +19,6 @@
     transition: filter 0.2s;
   }
 
-  /* Anti-Capture d'écran */
   body.hidden-screen {
     filter: blur(25px);
     pointer-events: none;
@@ -63,7 +62,7 @@
     border-bottom: 2px solid #fff;
     resize: none;
     outline: none;
-    pointer-events: none; /* Empêche le clavier mobile */
+    pointer-events: none;
   }
 
   #status-msg {
@@ -100,7 +99,7 @@
     border-left: 2px solid #808080;
     border-right: 2px solid #fff;
     border-bottom: 2px solid #fff;
-    padding: 16px 0 14px 1px; /* Effet d'enfoncement */
+    padding: 16px 0 14px 1px;
   }
 
   .key.disabled {
@@ -154,7 +153,7 @@
   <div class="instructions">
     <strong>Protocoles requis :</strong><br>
     - Minimum 30 mots.<br>
-    - Inclure exactement : "je vous vénère mon maitre"<br>
+    - Inclure exactement : "je vous vénère mon maître"<br>
     <div class="warning">⚠️ Règle stricte : Toute tentative de correction (⌫) effacera l'intégralité du message. La frappe est bloquée pendant l'apprentissage. La traduction n'apparaît qu'à la copie.</div>
   </div>
 
@@ -193,7 +192,7 @@
 
   document.addEventListener('contextmenu', e => e.preventDefault());
 
-  // --- ALPHABET (Ordre alphabétique normal) ---
+  // --- ALPHABET (Ordre alphabétique normal + accents) ---
   const sauvakAlphabet = [
     { char: 'a', sym: 'ᚨ' }, { char: 'b', sym: 'ᛒ' }, { char: 'c', sym: 'ᚳ' },
     { char: 'd', sym: 'ᛞ' }, { char: 'e', sym: 'ᛖ' }, { char: 'f', sym: 'ᚠ' },
@@ -205,8 +204,8 @@
     { char: 'v', sym: 'ᚡ' }, { char: 'w', sym: 'ᚹ' }, { char: 'x', sym: 'ᛪ' },
     { char: 'y', sym: 'ᛇ' }, { char: 'z', sym: 'ᛉ' },
     { char: 'é', sym: '◬' }, { char: 'è', sym: '◭' }, { char: 'à', sym: '◮' },
-    { char: 'ç', sym: '◨' }, { char: '.', sym: '.' }, { char: ',', sym: ',' },
-    { char: "'", sym: "'" }, { char: '?', sym: '?' }
+    { char: 'î', sym: '◫' }, { char: 'ç', sym: '◨' }, { char: '.', sym: '.' }, 
+    { char: ',', sym: ',' }, { char: "'", sym: "'" }, { char: '?', sym: '?' }
   ];
 
   const input = document.getElementById('inputText');
@@ -315,7 +314,7 @@
         return;
     }
 
-    if (!frText.includes("je vous vénère mon maitre")) {
+    if (!frText.includes("je vous vénère mon maître")) {
         nukeText();
         statusMsg.innerText = "Refusé. Phrase d'allégeance absente/fausse. Message détruit.";
         return;
