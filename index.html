@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clavier de Soumission</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0f0f0f;
+            color: #d0d0d0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        h1 {
+            color: #8b0000;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .instructions {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .instructions p {
+            margin: 5px 0;
+            color: #aaa;
+        }
+
+        .highlight {
+            color: #ff3333;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #ff9900;
+            font-size: 14px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        #output {
+            width: 100%;
+            max-width: 600px;
+            height: 120px;
+            background-color: #000;
+            color: #ff3333;
+            font-size: 20px;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            resize: none;
+            margin-bottom: 10px;
+            outline: none;
+            pointer-events: none; 
+        }
+
+        #error-msg {
+            color: #ff3333;
+            height: 40px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 600px;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .key {
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .key:active {
+            background-color: #8b0000;
+            transform: scale(0.95);
+        }
+
+        .action-keys {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .action-btn:active {
+            background-color: #555;
+        }
+
+        #copyBtn {
+            background-color: #4a0000;
+            border-color: #ff3333;
+            color: #ffcccc;
+        }
+        
+        #copyBtn:active {
+            background-color: #8b0000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Traducteur Imposé</h1>
+    
+    <div class="instructions">
+        <p>Règle 1 : Le message doit contenir au minimum <span class="highlight">30 mots</span>.</p>
+        <p>Règle 2 : Le message doit obligatoirement inclure la phrase :<br><span class="highlight">"je vous vénère mon maitre"</span></p>
+        <p class="warning">⚠️ Attention : Si vous tentez de soumettre sans respecter les règles, votre message sera intégralement détruit.</p>
+    </div>
+
+    <textarea id="output" readonly tabindex="-1" placeholder="Commencez à taper..."></textarea>
+    
+    <div id="error-msg"></div>
+
+    <div id="keyboard">
+        <!-- Généré par JS -->
+    </div>
+
+    <div class="action-keys">
+        <button class="action-btn" onclick="addText(' ')">Espace</button>
+        <button class="action-btn" onclick="backspace()">Corriger (⌫)</button>
+        <button class="action-btn" id="copyBtn" onclick="validateAndCopy()">Soumettre</button>
+    </div>
+
+    <script>
+        // --- BLOCAGE DU CLAVIER PHYSIQUE ---
+        document.addEventListener('keydown', function(event) {
+            const allowedKeys = ['F12', 'F5'];
+            if (!allowedKeys.includes(event.key) && !(event.ctrlKey && event.key === 'r')) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }, true);
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('paste', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault()); // Bloque la copie sauvage
+
+        // --- LOGIQUE DU CLAVIER ---
+        const characters = "abcdefghijklmnopqrstuvwxyzéèàç.,'?".split("");
+
+        const outputArea = document.getElementById('output');
+        const keyboardDiv = document.getElementById('keyboard');
+        const errorMsg = document.getElementById('error-msg');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let keys = shuffleArray([...characters]);
+
+        keys.forEach(char => {
+            let btn = document.createElement('button');
+            btn.className = 'key';
+            btn.innerText = char;
+            btn.onmousedown = (e) => e.preventDefault(); 
+            btn.onclick = () => addText(char);
+            keyboardDiv.appendChild(btn);
+        });
+
+        function addText(char) {
+            outputArea.value += char;
+            // On n'efface pas le message d'erreur tout de suite pour qu'il comprenne sa punition
+        }
+
+        function backspace() {
+            outputArea.value = outputArea.value.slice(0, -1);
+        }
+
+        function countWords(str) {
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function validateAndCopy() {
+            const text = outputArea.value;
+            const wordCount = countWords(text);
+            const requiredPhrase = "je vous vénère mon maitre";
+
+            // Si le texte est vide, on ne fait rien
+            if (text.length === 0) return;
+
+            // Vérification des deux conditions
+            let hasError = false;
+            let errorMessage = "";
+
+            if (wordCount < 30) {
+                hasError = true;
+                errorMessage = `Refusé. Il manque des mots (${wordCount}/30).`;
+            } else if (!text.includes(requiredPhrase)) {
+                hasError = true;
+                errorMessage = `Refusé. La phrase d'allégeance est manquante ou mal orthographiée.`;
+            }
+
+            // Si une règle n'est pas respectée : PUNITION
+            if (hasError) {
+                errorMsg.innerHTML = `${errorMessage}<br><strong>PUNITION : Votre texte a été effacé. Recommencez.</strong>`;
+                outputArea.value = ""; // Efface tout le texte !
+                
+                // Remélanger le clavier pour ajouter à la frustration ? (Optionnel)
+                // location.reload(); // Décommentez cette ligne si vous voulez que la page se recharge et remélange les touches en plus.
+                
+                return;
+            }
+
+            // Si tout est validé, on autorise la copie
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerText;
+                btn.innerText = "Message Autorisé & Copié";
+                btn.style.backgroundColor = "#28a745";
+                btn.style.borderColor = "#28a745";
+                errorMsg.style.color = "#28a745";
+                errorMsg.innerHTML = "Soumission acceptée.<br>Vous pouvez maintenant coller le message à votre Maître.";
+                
+                setTimeout(() => { 
+                    btn.innerText = originalText; 
+                    btn.style.backgroundColor = "#4a0000";
+                    btn.style.borderColor = "#ff3333";
+                    errorMsg.style.color = "#ff3333";
+                    errorMsg.innerText = "";
+                }, 5000);
+            });
+        }
+    </script>
+</body>
+</html>
