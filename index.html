@@ -1,353 +1,358 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clavier de Soumission</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #0f0f0f;
-            color: #d0d0d0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            user-select: none; 
-            -webkit-user-select: none;
-            transition: filter 0.2s, opacity 0.2s;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clavier de Soumission</title>
+<style>
+  /* Style Rétro Windows 95 */
+  body {
+    font-family: 'MS Sans Serif', 'Segoe UI', sans-serif;
+    background: #008080;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: filter 0.2s;
+  }
 
-        /* Classe appliquée quand la page perd le focus (Anti-Capture) */
-        body.hidden-screen {
-            filter: blur(20px);
-            opacity: 0;
-        }
+  /* Anti-Capture d'écran */
+  body.hidden-screen {
+    filter: blur(25px);
+    pointer-events: none;
+  }
 
-        h1 {
-            color: #8b0000;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+  .window {
+    width: 100%;
+    max-width: 600px;
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-right: 2px solid #000;
+    border-bottom: 2px solid #000;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    padding: 2px;
+  }
 
-        .instructions {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            max-width: 600px;
-            text-align: center;
-        }
+  .title-bar {
+    background: #000080;
+    color: white;
+    padding: 5px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+  }
 
-        .instructions p {
-            margin: 5px 0;
-            color: #aaa;
-            font-size: 14px;
-        }
+  .content {
+    padding: 10px;
+  }
 
-        .highlight {
-            color: #ff3333;
-            font-weight: bold;
-        }
+  .instructions {
+    background: #fff;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    padding: 10px;
+    font-size: 13px;
+    margin-bottom: 15px;
+  }
 
-        .warning {
-            color: #ff9900;
-            font-size: 13px;
-            margin-top: 10px;
-            font-style: italic;
-        }
+  .warning {
+    color: #d00000;
+    font-weight: bold;
+    margin-top: 5px;
+  }
 
-        #output {
-            width: 100%;
-            max-width: 600px;
-            height: 120px;
-            background-color: #000;
-            color: #ff3333;
-            font-size: 20px;
-            padding: 10px;
-            border: 2px solid #333;
-            border-radius: 5px;
-            resize: none;
-            margin-bottom: 10px;
-            outline: none;
-            pointer-events: none; 
-        }
+  #inputText {
+    width: 100%;
+    height: 100px;
+    font-size: 24px;
+    margin-bottom: 10px;
+    padding: 5px;
+    box-sizing: border-box;
+    background: #fff;
+    color: #000;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    resize: none;
+    outline: none;
+    pointer-events: none; /* Empêche le clavier mobile */
+  }
 
-        #error-msg {
-            color: #ff3333;
-            height: 40px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: center;
-        }
+  #status-msg {
+    color: #000080;
+    font-weight: bold;
+    height: 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
 
-        #keyboard {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 600px;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 15px;
+  }
 
-        .key {
-            width: 45px;
-            height: 45px;
-            font-size: 20px;
-            background-color: #222;
-            color: #fff;
-            border: 1px solid #555;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.1s, transform 0.1s;
-        }
+  .key {
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-right: 2px solid #808080;
+    border-bottom: 2px solid #808080;
+    text-align: center;
+    font-size: 20px;
+    padding: 12px 0;
+    cursor: pointer;
+    font-weight: bold;
+  }
 
-        .key:active {
-            background-color: #8b0000;
-            transform: scale(0.95);
-        }
+  .key:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    padding: 13px 0 11px 1px; /* Effet d'enfoncement */
+  }
 
-        .action-keys {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            max-width: 600px;
-        }
+  .key.disabled {
+    color: #808080;
+    text-shadow: 1px 1px 0px #fff;
+    cursor: not-allowed;
+  }
 
-        .action-btn {
-            padding: 12px 15px;
-            font-size: 14px;
-            background-color: #333;
-            color: #fff;
-            border: 1px solid #555;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
 
-        .action-btn:active {
-            background-color: #555;
-        }
+  .button {
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-right: 2px solid #808080;
+    border-bottom: 2px solid #808080;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'MS Sans Serif', sans-serif;
+  }
 
-        #revealBtn {
-            background-color: #004080;
-            border-color: #0066cc;
-            width: 100%;
-            margin-bottom: 20px;
-        }
+  .button:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+  }
 
-        #revealBtn:disabled {
-            background-color: #222;
-            color: #666;
-            border-color: #333;
-            cursor: not-allowed;
-        }
+  .button:disabled {
+    color: #808080;
+    text-shadow: 1px 1px 0px #fff;
+    cursor: not-allowed;
+  }
 
-        #copyBtn {
-            background-color: #4a0000;
-            border-color: #ff3333;
-            color: #ffcccc;
-        }
-    </style>
+  .btn-danger {
+    color: #d00000;
+  }
+</style>
 </head>
 <body>
 
-    <h1>Traducteur Imposé</h1>
-    
+<div class="window">
+  <div class="title-bar">
+    <span>Clavier Sauvak - Soumission.exe</span>
+    <span>X</span>
+  </div>
+
+  <div class="content">
     <div class="instructions">
-        <p>Règle 1 : <span class="highlight">30 mots</span> minimum.</p>
-        <p>Règle 2 : Inclure obligatoirement : <span class="highlight">"je vous vénère mon maitre"</span></p>
-        <p class="warning">⚠️ Révélation : Vous pouvez démasquer les touches pendant 20s, une seule fois par heure.</p>
-        <p class="warning">📸 Captures d'écran interdites. Toute tentative de triche bloquera l'écran.</p>
+      <strong>Protocoles requis :</strong><br>
+      - Minimum 30 mots.<br>
+      - Inclure exactement : "je vous vénère mon maitre"<br>
+      <div class="warning">⚠️ Règle stricte : Toute tentative de correction (⌫) effacera l'intégralité du message. La frappe est bloquée pendant l'apprentissage. La traduction n'apparaît qu'à la copie.</div>
     </div>
 
-    <textarea id="output" readonly tabindex="-1" placeholder="Commencez à taper..."></textarea>
+    <textarea id="inputText" readonly tabindex="-1" placeholder="Frappe interdite au clavier..."></textarea>
     
-    <div id="error-msg"></div>
+    <div id="status-msg">Prêt.</div>
 
-    <button class="action-btn" id="revealBtn" onclick="triggerReveal()">👁️ Démasquer l'alphabet (20s)</button>
+    <button class="button" id="revealBtn" style="width: 100%; margin-bottom: 15px;" onclick="triggerReveal()">👁️ Démasquer l'alphabet (20s)</button>
 
-    <div id="keyboard">
-        <!-- Généré par JS -->
+    <div class="keyboard" id="keyboard"></div>
+
+    <div class="buttons">
+      <button class="button" style="flex-grow: 1;" onclick="addChar(' ')">Espace (␣)</button>
+      <button class="button btn-danger" onclick="nukeText()">Corriger (⌫)</button>
+      <button class="button" style="width: 100%; margin-top: 5px;" onclick="submitAndCopy()">Valider & Copier le Message</button>
     </div>
+  </div>
+</div>
 
-    <div class="action-keys">
-        <button class="action-btn" onclick="addText(' ')">Espace</button>
-        <button class="action-btn" onclick="backspace()">Corriger (⌫)</button>
-        <button class="action-btn" id="copyBtn" onclick="validateAndCopy()">Soumettre</button>
-    </div>
+<script>
+  // --- ANTI-CAPTURE & BLOCAGE PHYSIQUE ---
+  window.addEventListener('blur', () => document.body.classList.add('hidden-screen'));
+  window.addEventListener('focus', () => document.body.classList.remove('hidden-screen'));
 
-    <script>
-        // --- ANTI-CAPTURE D'ÉCRAN ---
-        // Floute et cache le site si la fenêtre perd le focus (bloque les outils de capture)
-        window.addEventListener('blur', () => {
-            document.body.classList.add('hidden-screen');
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+        alert("Triche détectée : Capture d'écran bloquée.");
+    }
+    const allowedKeys = ['F12', 'F5'];
+    if (!allowedKeys.includes(event.key) && !(event.ctrlKey && event.key === 'r')) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+  }, true);
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // --- ALPHABET (Ordre alphabétique normal) ---
+  const sauvakAlphabet = [
+    { char: 'a', sym: 'ᚨ' }, { char: 'b', sym: 'ᛒ' }, { char: 'c', sym: 'ᚳ' },
+    { char: 'd', sym: 'ᛞ' }, { char: 'e', sym: 'ᛖ' }, { char: 'f', sym: 'ᚠ' },
+    { char: 'g', sym: 'ᚷ' }, { char: 'h', sym: 'ᚺ' }, { char: 'i', sym: 'ᛁ' },
+    { char: 'j', sym: 'ᛃ' }, { char: 'k', sym: 'ᚴ' }, { char: 'l', sym: 'ᛚ' },
+    { char: 'm', sym: 'ᛗ' }, { char: 'n', sym: 'ᚾ' }, { char: 'o', sym: 'ᛟ' },
+    { char: 'p', sym: 'ᛈ' }, { char: 'q', sym: 'ᛩ' }, { char: 'r', sym: 'ᚱ' },
+    { char: 's', sym: 'ᛋ' }, { char: 't', sym: 'ᛏ' }, { char: 'u', sym: 'ᚢ' },
+    { char: 'v', sym: 'ᚡ' }, { char: 'w', sym: 'ᚹ' }, { char: 'x', sym: 'ᛪ' },
+    { char: 'y', sym: 'ᛇ' }, { char: 'z', sym: 'ᛉ' },
+    { char: 'é', sym: '◬' }, { char: 'è', sym: '◭' }, { char: 'à', sym: '◮' },
+    { char: 'ç', sym: '◨' }, { char: '.', sym: '.' }, { char: ',', sym: ',' },
+    { char: "'", sym: "'" }, { char: '?', sym: '?' }
+  ];
+
+  const input = document.getElementById('inputText');
+  const keyboard = document.getElementById('keyboard');
+  const statusMsg = document.getElementById('status-msg');
+  const revealBtn = document.getElementById('revealBtn');
+  let isRevealed = false;
+
+  // Dictionnaire inversé pour la traduction
+  const symToChar = {};
+  sauvakAlphabet.forEach(item => symToChar[item.sym] = item.char);
+
+  // Génération du clavier
+  sauvakAlphabet.forEach(item => {
+    const key = document.createElement('div');
+    key.className = 'key';
+    key.textContent = item.sym;
+    key.dataset.sym = item.sym;
+    key.dataset.char = item.char;
+    key.onclick = () => addChar(item.sym);
+    keyboard.appendChild(key);
+  });
+
+  // --- LOGIQUE DE FRAPPE ---
+  function addChar(char) {
+    if (isRevealed) return; // BLOCAGE PENDANT LA RÉVÉLATION
+    input.value += char;
+    statusMsg.innerText = "";
+    statusMsg.style.color = "#000080";
+  }
+
+  // --- ANTI-CORRECTION (Supprime TOUT) ---
+  function nukeText() {
+    input.value = "";
+    statusMsg.style.color = "#d00000";
+    statusMsg.innerText = "Correction interdite. Le message a été entièrement détruit.";
+  }
+
+  // --- RÉVÉLATION (1h cooldown, fige le clavier) ---
+  const COOLDOWN_MS = 60 * 60 * 1000;
+  
+  function updateRevealButton() {
+    const lastReveal = localStorage.getItem('lastRevealTimeWin95');
+    if (!lastReveal) return;
+
+    const timePassed = Date.now() - parseInt(lastReveal);
+    if (timePassed < COOLDOWN_MS) {
+        revealBtn.disabled = true;
+        const minLeft = Math.ceil((COOLDOWN_MS - timePassed) / 60000);
+        revealBtn.innerText = `Apprentissage bloqué (${minLeft} min)`;
+    } else {
+        revealBtn.disabled = false;
+        revealBtn.innerText = "👁️ Démasquer l'alphabet (20s)";
+    }
+  }
+
+  updateRevealButton();
+  setInterval(updateRevealButton, 60000);
+
+  function triggerReveal() {
+    localStorage.setItem('lastRevealTimeWin95', Date.now());
+    updateRevealButton();
+    isRevealed = true; // Empêche d'écrire
+    
+    const keys = document.querySelectorAll('.keyboard .key');
+    keys.forEach(k => {
+        k.textContent = k.dataset.char;
+        k.classList.add('disabled');
+    });
+
+    statusMsg.style.color = "#d00000";
+    statusMsg.innerText = "Mémorisez. Frappe bloquée pendant 20s.";
+
+    setTimeout(() => {
+        keys.forEach(k => {
+            k.textContent = k.dataset.sym;
+            k.classList.remove('disabled');
         });
-        window.addEventListener('focus', () => {
-            document.body.classList.remove('hidden-screen');
-        });
+        isRevealed = false; // Réactive l'écriture
+        statusMsg.style.color = "#000080";
+        statusMsg.innerText = "Le clavier est à nouveau actif.";
+    }, 20000);
+  }
 
-        // Bloque la touche Impr. Écran
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'PrintScreen') {
-                navigator.clipboard.writeText(''); // Vide le presse-papiers
-                alert("Triche détectée : Captures d'écran interdites.");
-            }
-        });
+  // --- TRADUCTION & VALIDATION ---
+  function translateToFrench(text) {
+    let result = '';
+    for (let char of text) {
+        result += symToChar[char] || char;
+    }
+    return result;
+  }
 
-        // --- BLOCAGE DU CLAVIER PHYSIQUE ---
-        document.addEventListener('keydown', function(event) {
-            const allowedKeys = ['F12', 'F5'];
-            if (!allowedKeys.includes(event.key) && !(event.ctrlKey && event.key === 'r')) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-        }, true);
+  function submitAndCopy() {
+    if (input.value.length === 0) return;
 
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        document.addEventListener('paste', event => event.preventDefault());
-        document.addEventListener('copy', event => event.preventDefault());
+    const symText = input.value;
+    const frText = translateToFrench(symText);
+    const wordCount = frText.trim().split(/\s+/).filter(w => w.length > 0).length;
 
-        // --- ALPHABET INVENTÉ (Dans l'ordre alphabétique normal) ---
-        // a-z puis accents puis ponctuation
-        const alphabetMap = [
-            { char: 'a', symbol: '∆' }, { char: 'b', symbol: '▱' }, { char: 'c', symbol: '☾' },
-            { char: 'd', symbol: '◪' }, { char: 'e', symbol: '⛆' }, { char: 'f', symbol: '⚑' },
-            { char: 'g', symbol: '⚙' }, { char: 'h', symbol: '⎊' }, { char: 'i', symbol: '⌁' },
-            { char: 'j', symbol: '⍣' }, { char: 'k', symbol: '⍰' }, { char: 'l', symbol: '⎓' },
-            { char: 'm', symbol: '⍝' }, { char: 'n', symbol: '⍙' }, { char: 'o', symbol: '⎗' },
-            { char: 'p', symbol: '⍢' }, { char: 'q', symbol: '⍲' }, { char: 'r', symbol: '⎘' },
-            { char: 's', symbol: '⌇' }, { char: 't', symbol: '⍋' }, { char: 'u', symbol: '⍱' },
-            { char: 'v', symbol: '⍚' }, { char: 'w', symbol: '⍡' }, { char: 'x', symbol: '⨈' },
-            { char: 'y', symbol: '⨉' }, { char: 'z', symbol: '⨇' },
-            { char: 'é', symbol: '◬' }, { char: 'è', symbol: '◭' }, { char: 'à', symbol: '◮' },
-            { char: 'ç', symbol: '◨' }, { char: '.', symbol: '⌖' }, { char: ',', symbol: '⍾' },
-            { char: "'", symbol: '⍿' }, { char: '?', symbol: '⍰' }
-        ];
+    // Vérifications
+    if (wordCount < 30) {
+        nukeText();
+        statusMsg.innerText = `Refusé. Manque de mots (${wordCount}/30). Message détruit.`;
+        return;
+    }
 
-        const outputArea = document.getElementById('output');
-        const keyboardDiv = document.getElementById('keyboard');
-        const errorMsg = document.getElementById('error-msg');
-        const revealBtn = document.getElementById('revealBtn');
+    if (!frText.includes("je vous vénère mon maitre")) {
+        nukeText();
+        statusMsg.innerText = "Refusé. Phrase d'allégeance absente/fausse. Message détruit.";
+        return;
+    }
 
-        // Génération des touches dans l'ORDRE ALPHABÉTIQUE
-        alphabetMap.forEach(item => {
-            let btn = document.createElement('button');
-            btn.className = 'key';
-            btn.innerText = item.symbol;
-            btn.dataset.char = item.char;     // Mémorise la vraie lettre
-            btn.dataset.symbol = item.symbol; // Mémorise le symbole
-            btn.onmousedown = (e) => e.preventDefault(); 
-            btn.onclick = () => addText(item.char);
-            keyboardDiv.appendChild(btn);
-        });
+    // Création du bloc final avec la traduction
+    const finalMessage = `${symText}\n\n--- TRADUCTION ---\n${frText}`;
 
-        // --- GESTION DE LA RÉVÉLATION (20 secondes, 1 fois par heure) ---
-        const COOLDOWN_MS = 60 * 60 * 1000; // 1 heure en millisecondes
-        const REVEAL_DURATION_MS = 20 * 1000; // 20 secondes
-
-        function updateRevealButton() {
-            const lastReveal = localStorage.getItem('lastRevealTime');
-            if (!lastReveal) return;
-
-            const now = Date.now();
-            const timePassed = now - parseInt(lastReveal);
-
-            if (timePassed < COOLDOWN_MS) {
-                revealBtn.disabled = true;
-                const minutesLeft = Math.ceil((COOLDOWN_MS - timePassed) / 60000);
-                revealBtn.innerText = `⏳ Apprentissage bloqué (${minutesLeft} min restantes)`;
-            } else {
-                revealBtn.disabled = false;
-                revealBtn.innerText = "👁️ Démasquer l'alphabet (20s)";
-            }
-        }
-
-        // Vérifie le statut au chargement et le met à jour toutes les minutes
-        updateRevealButton();
-        setInterval(updateRevealButton, 60000);
-
-        function triggerReveal() {
-            const now = Date.now();
-            localStorage.setItem('lastRevealTime', now);
-            updateRevealButton(); // Désactive le bouton instantanément
-            
-            // Transforme les symboles en vraies lettres
-            const keys = document.querySelectorAll('.key');
-            keys.forEach(btn => {
-                btn.innerText = btn.dataset.char;
-                btn.style.backgroundColor = "#004080"; // Change la couleur pour marquer le mode
-            });
-
-            // Revenir aux symboles après 20 secondes
-            setTimeout(() => {
-                keys.forEach(btn => {
-                    btn.innerText = btn.dataset.symbol;
-                    btn.style.backgroundColor = "#222";
-                });
-            }, REVEAL_DURATION_MS);
-        }
-
-        // --- GESTION DU TEXTE ---
-        function addText(char) {
-            outputArea.value += char;
-        }
-
-        function backspace() {
-            outputArea.value = outputArea.value.slice(0, -1);
-        }
-
-        function countWords(str) {
-            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
-        }
-
-        // --- VALIDATION ET PUNITION ---
-        function validateAndCopy() {
-            const text = outputArea.value;
-            const wordCount = countWords(text);
-            const requiredPhrase = "je vous vénère mon maitre";
-
-            if (text.length === 0) return;
-
-            let hasError = false;
-            let errorMessage = "";
-
-            if (wordCount < 30) {
-                hasError = true;
-                errorMessage = `Refusé. Il manque des mots (${wordCount}/30).`;
-            } else if (!text.includes(requiredPhrase)) {
-                hasError = true;
-                errorMessage = `Refusé. La phrase d'allégeance est manquante ou mal orthographiée.`;
-            }
-
-            if (hasError) {
-                errorMsg.innerHTML = `${errorMessage}<br><strong>PUNITION : Votre texte a été effacé. Recommencez.</strong>`;
-                outputArea.value = ""; 
-                return;
-            }
-
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.getElementById('copyBtn');
-                const originalText = btn.innerText;
-                btn.innerText = "Message Autorisé & Copié";
-                btn.style.backgroundColor = "#28a745";
-                btn.style.borderColor = "#28a745";
-                errorMsg.style.color = "#28a745";
-                errorMsg.innerHTML = "Soumission acceptée.<br>Vous pouvez maintenant coller le message.";
-                
-                setTimeout(() => { 
-                    btn.innerText = originalText; 
-                    btn.style.backgroundColor = "#4a0000";
-                    btn.style.borderColor = "#ff3333";
-                    errorMsg.style.color = "#ff3333";
-                    errorMsg.innerText = "";
-                }, 5000);
-            });
-        }
-    </script>
+    // Copie et Auto-Destruction immédiate
+    navigator.clipboard.writeText(finalMessage).then(() => {
+        input.value = ""; // AUTO-DESTRUCTION SUR L'ÉCRAN
+        statusMsg.style.color = "#008000";
+        statusMsg.innerText = "Valide. Message copié avec sa traduction. Il s'est effacé de l'écran.";
+    });
+  }
+</script>
 </body>
 </html>
