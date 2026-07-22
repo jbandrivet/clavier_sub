@@ -15,6 +15,13 @@
             padding: 20px;
             user-select: none; 
             -webkit-user-select: none;
+            transition: filter 0.2s, opacity 0.2s;
+        }
+
+        /* Classe appliquée quand la page perd le focus (Anti-Capture) */
+        body.hidden-screen {
+            filter: blur(20px);
+            opacity: 0;
         }
 
         h1 {
@@ -37,6 +44,7 @@
         .instructions p {
             margin: 5px 0;
             color: #aaa;
+            font-size: 14px;
         }
 
         .highlight {
@@ -46,7 +54,7 @@
 
         .warning {
             color: #ff9900;
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 10px;
             font-style: italic;
         }
@@ -70,7 +78,7 @@
         #error-msg {
             color: #ff3333;
             height: 40px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-weight: bold;
             text-align: center;
         }
@@ -103,13 +111,16 @@
 
         .action-keys {
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
+            max-width: 600px;
         }
 
         .action-btn {
-            padding: 12px 20px;
-            font-size: 16px;
+            padding: 12px 15px;
+            font-size: 14px;
             background-color: #333;
             color: #fff;
             border: 1px solid #555;
@@ -122,14 +133,24 @@
             background-color: #555;
         }
 
+        #revealBtn {
+            background-color: #004080;
+            border-color: #0066cc;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        #revealBtn:disabled {
+            background-color: #222;
+            color: #666;
+            border-color: #333;
+            cursor: not-allowed;
+        }
+
         #copyBtn {
             background-color: #4a0000;
             border-color: #ff3333;
             color: #ffcccc;
-        }
-        
-        #copyBtn:active {
-            background-color: #8b0000;
         }
     </style>
 </head>
@@ -138,14 +159,17 @@
     <h1>Traducteur Imposé</h1>
     
     <div class="instructions">
-        <p>Règle 1 : Le message doit contenir au minimum <span class="highlight">30 mots</span>.</p>
-        <p>Règle 2 : Le message doit obligatoirement inclure la phrase :<br><span class="highlight">"je vous vénère mon maitre"</span></p>
-        <p class="warning">⚠️ Attention : Si vous tentez de soumettre sans respecter les règles, votre message sera intégralement détruit.</p>
+        <p>Règle 1 : <span class="highlight">30 mots</span> minimum.</p>
+        <p>Règle 2 : Inclure obligatoirement : <span class="highlight">"je vous vénère mon maitre"</span></p>
+        <p class="warning">⚠️ Révélation : Vous pouvez démasquer les touches pendant 20s, une seule fois par heure.</p>
+        <p class="warning">📸 Captures d'écran interdites. Toute tentative de triche bloquera l'écran.</p>
     </div>
 
     <textarea id="output" readonly tabindex="-1" placeholder="Commencez à taper..."></textarea>
     
     <div id="error-msg"></div>
+
+    <button class="action-btn" id="revealBtn" onclick="triggerReveal()">👁️ Démasquer l'alphabet (20s)</button>
 
     <div id="keyboard">
         <!-- Généré par JS -->
@@ -158,6 +182,23 @@
     </div>
 
     <script>
+        // --- ANTI-CAPTURE D'ÉCRAN ---
+        // Floute et cache le site si la fenêtre perd le focus (bloque les outils de capture)
+        window.addEventListener('blur', () => {
+            document.body.classList.add('hidden-screen');
+        });
+        window.addEventListener('focus', () => {
+            document.body.classList.remove('hidden-screen');
+        });
+
+        // Bloque la touche Impr. Écran
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'PrintScreen') {
+                navigator.clipboard.writeText(''); // Vide le presse-papiers
+                alert("Triche détectée : Captures d'écran interdites.");
+            }
+        });
+
         // --- BLOCAGE DU CLAVIER PHYSIQUE ---
         document.addEventListener('keydown', function(event) {
             const allowedKeys = ['F12', 'F5'];
@@ -169,37 +210,91 @@
 
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('paste', event => event.preventDefault());
-        document.addEventListener('copy', event => event.preventDefault()); // Bloque la copie sauvage
+        document.addEventListener('copy', event => event.preventDefault());
 
-        // --- LOGIQUE DU CLAVIER ---
-        const characters = "abcdefghijklmnopqrstuvwxyzéèàç.,'?".split("");
+        // --- ALPHABET INVENTÉ (Dans l'ordre alphabétique normal) ---
+        // a-z puis accents puis ponctuation
+        const alphabetMap = [
+            { char: 'a', symbol: '∆' }, { char: 'b', symbol: '▱' }, { char: 'c', symbol: '☾' },
+            { char: 'd', symbol: '◪' }, { char: 'e', symbol: '⛆' }, { char: 'f', symbol: '⚑' },
+            { char: 'g', symbol: '⚙' }, { char: 'h', symbol: '⎊' }, { char: 'i', symbol: '⌁' },
+            { char: 'j', symbol: '⍣' }, { char: 'k', symbol: '⍰' }, { char: 'l', symbol: '⎓' },
+            { char: 'm', symbol: '⍝' }, { char: 'n', symbol: '⍙' }, { char: 'o', symbol: '⎗' },
+            { char: 'p', symbol: '⍢' }, { char: 'q', symbol: '⍲' }, { char: 'r', symbol: '⎘' },
+            { char: 's', symbol: '⌇' }, { char: 't', symbol: '⍋' }, { char: 'u', symbol: '⍱' },
+            { char: 'v', symbol: '⍚' }, { char: 'w', symbol: '⍡' }, { char: 'x', symbol: '⨈' },
+            { char: 'y', symbol: '⨉' }, { char: 'z', symbol: '⨇' },
+            { char: 'é', symbol: '◬' }, { char: 'è', symbol: '◭' }, { char: 'à', symbol: '◮' },
+            { char: 'ç', symbol: '◨' }, { char: '.', symbol: '⌖' }, { char: ',', symbol: '⍾' },
+            { char: "'", symbol: '⍿' }, { char: '?', symbol: '⍰' }
+        ];
 
         const outputArea = document.getElementById('output');
         const keyboardDiv = document.getElementById('keyboard');
         const errorMsg = document.getElementById('error-msg');
+        const revealBtn = document.getElementById('revealBtn');
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        let keys = shuffleArray([...characters]);
-
-        keys.forEach(char => {
+        // Génération des touches dans l'ORDRE ALPHABÉTIQUE
+        alphabetMap.forEach(item => {
             let btn = document.createElement('button');
             btn.className = 'key';
-            btn.innerText = char;
+            btn.innerText = item.symbol;
+            btn.dataset.char = item.char;     // Mémorise la vraie lettre
+            btn.dataset.symbol = item.symbol; // Mémorise le symbole
             btn.onmousedown = (e) => e.preventDefault(); 
-            btn.onclick = () => addText(char);
+            btn.onclick = () => addText(item.char);
             keyboardDiv.appendChild(btn);
         });
 
+        // --- GESTION DE LA RÉVÉLATION (20 secondes, 1 fois par heure) ---
+        const COOLDOWN_MS = 60 * 60 * 1000; // 1 heure en millisecondes
+        const REVEAL_DURATION_MS = 20 * 1000; // 20 secondes
+
+        function updateRevealButton() {
+            const lastReveal = localStorage.getItem('lastRevealTime');
+            if (!lastReveal) return;
+
+            const now = Date.now();
+            const timePassed = now - parseInt(lastReveal);
+
+            if (timePassed < COOLDOWN_MS) {
+                revealBtn.disabled = true;
+                const minutesLeft = Math.ceil((COOLDOWN_MS - timePassed) / 60000);
+                revealBtn.innerText = `⏳ Apprentissage bloqué (${minutesLeft} min restantes)`;
+            } else {
+                revealBtn.disabled = false;
+                revealBtn.innerText = "👁️ Démasquer l'alphabet (20s)";
+            }
+        }
+
+        // Vérifie le statut au chargement et le met à jour toutes les minutes
+        updateRevealButton();
+        setInterval(updateRevealButton, 60000);
+
+        function triggerReveal() {
+            const now = Date.now();
+            localStorage.setItem('lastRevealTime', now);
+            updateRevealButton(); // Désactive le bouton instantanément
+            
+            // Transforme les symboles en vraies lettres
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(btn => {
+                btn.innerText = btn.dataset.char;
+                btn.style.backgroundColor = "#004080"; // Change la couleur pour marquer le mode
+            });
+
+            // Revenir aux symboles après 20 secondes
+            setTimeout(() => {
+                keys.forEach(btn => {
+                    btn.innerText = btn.dataset.symbol;
+                    btn.style.backgroundColor = "#222";
+                });
+            }, REVEAL_DURATION_MS);
+        }
+
+        // --- GESTION DU TEXTE ---
         function addText(char) {
             outputArea.value += char;
-            // On n'efface pas le message d'erreur tout de suite pour qu'il comprenne sa punition
         }
 
         function backspace() {
@@ -210,15 +305,14 @@
             return str.trim().split(/\s+/).filter(word => word.length > 0).length;
         }
 
+        // --- VALIDATION ET PUNITION ---
         function validateAndCopy() {
             const text = outputArea.value;
             const wordCount = countWords(text);
             const requiredPhrase = "je vous vénère mon maitre";
 
-            // Si le texte est vide, on ne fait rien
             if (text.length === 0) return;
 
-            // Vérification des deux conditions
             let hasError = false;
             let errorMessage = "";
 
@@ -230,18 +324,12 @@
                 errorMessage = `Refusé. La phrase d'allégeance est manquante ou mal orthographiée.`;
             }
 
-            // Si une règle n'est pas respectée : PUNITION
             if (hasError) {
                 errorMsg.innerHTML = `${errorMessage}<br><strong>PUNITION : Votre texte a été effacé. Recommencez.</strong>`;
-                outputArea.value = ""; // Efface tout le texte !
-                
-                // Remélanger le clavier pour ajouter à la frustration ? (Optionnel)
-                // location.reload(); // Décommentez cette ligne si vous voulez que la page se recharge et remélange les touches en plus.
-                
+                outputArea.value = ""; 
                 return;
             }
 
-            // Si tout est validé, on autorise la copie
             navigator.clipboard.writeText(text).then(() => {
                 const btn = document.getElementById('copyBtn');
                 const originalText = btn.innerText;
@@ -249,7 +337,7 @@
                 btn.style.backgroundColor = "#28a745";
                 btn.style.borderColor = "#28a745";
                 errorMsg.style.color = "#28a745";
-                errorMsg.innerHTML = "Soumission acceptée.<br>Vous pouvez maintenant coller le message à votre Maître.";
+                errorMsg.innerHTML = "Soumission acceptée.<br>Vous pouvez maintenant coller le message.";
                 
                 setTimeout(() => { 
                     btn.innerText = originalText; 
