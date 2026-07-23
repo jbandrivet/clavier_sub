@@ -10,15 +10,15 @@
     font-family: 'MS Sans Serif', 'Segoe UI', sans-serif;
     background: #c0c0c0;
     margin: 0;
-    padding: 10px; /* Réduit le padding pour les petits écrans */
+    padding: 10px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     user-select: none;
     -webkit-user-select: none;
     transition: filter 0.2s;
-    height: 100vh; /* Utilise toute la hauteur de la fenêtre */
-    overflow: hidden; /* Empêche le défilement de toute la page */
+    height: 100vh;
+    overflow: hidden; 
   }
 
   body.hidden-screen {
@@ -31,7 +31,7 @@
     max-width: 600px;
     display: flex;
     flex-direction: column;
-    height: 98vh; /* Prend la quasi-totalité de l'écran vertical */
+    height: 98vh; 
   }
 
   .instructions {
@@ -40,10 +40,10 @@
     border-left: 2px solid #808080;
     border-right: 2px solid #fff;
     border-bottom: 2px solid #fff;
-    padding: 10px; /* Légèrement réduit pour gagner de la place */
+    padding: 10px; 
     font-size: 13px;
     margin-bottom: 10px;
-    flex-shrink: 0; /* Empêche l'écrasement */
+    flex-shrink: 0; 
   }
 
   .warning {
@@ -52,11 +52,10 @@
     margin-top: 5px;
   }
 
-  /* Zone de texte avec hauteur contrôlée et défilement interne */
   .textarea-wrapper {
-    flex-grow: 1; /* Prend l'espace disponible */
+    flex-grow: 1; 
     min-height: 80px;
-    max-height: 250px; /* Ne grandira pas plus que ça */
+    max-height: 250px; 
     margin-bottom: 10px;
     background: #fff;
     border-top: 2px solid #808080;
@@ -70,7 +69,7 @@
   #inputText {
     width: 100%;
     height: 100%;
-    font-size: 22px; /* Légèrement réduit pour afficher plus de mots */
+    font-size: 22px; 
     padding: 10px;
     box-sizing: border-box;
     background: transparent;
@@ -79,13 +78,13 @@
     resize: none;
     outline: none;
     pointer-events: none;
-    overflow-y: auto; /* Active le défilement INTERNE si le texte est trop long */
+    overflow-y: auto; 
   }
 
   #status-msg {
     color: #000080;
     font-weight: bold;
-    height: 20px;
+    height: 40px; /* Agrandi pour pouvoir afficher deux lignes d'erreur si besoin */
     margin-bottom: 10px;
     font-size: 13px;
     text-align: center;
@@ -101,7 +100,7 @@
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
     margin-bottom: 15px;
-    flex-shrink: 0; /* Empêche le clavier de rétrécir */
+    flex-shrink: 0; 
   }
 
   .key {
@@ -112,7 +111,7 @@
     border-bottom: 2px solid #808080;
     text-align: center;
     font-size: 20px;
-    padding: 12px 0; /* Padding ajusté pour les mobiles */
+    padding: 12px 0; 
     cursor: pointer;
     font-weight: bold;
   }
@@ -182,7 +181,6 @@
   </div>
 
   <div class="textarea-wrapper">
-    <!-- Champ avec défilement interne -->
     <textarea id="inputText" readonly tabindex="-1" placeholder="utiliser mon alphabet personelle"></textarea>
   </div>
   
@@ -196,7 +194,7 @@
 
   <div class="buttons">
     <button class="button" style="flex-grow: 1;" onclick="addChar(' ')">Espace (␣)</button>
-    <button class="button btn-danger" onclick="nukeText()">Corriger (⌫)</button>
+    <button class="button btn-danger" onclick="nukeText('Correction interdite. Le message a été entièrement détruit.')">Corriger (⌫)</button>
     <button class="button" style="width: 100%;" onclick="submitAndCopy()">Valider & Copier le Message</button>
   </div>
 
@@ -243,11 +241,9 @@
   const revealBtn = document.getElementById('revealBtn');
   let isRevealed = false;
 
-  // Dictionnaire inversé pour la traduction
   const symToChar = {};
   sauvakAlphabet.forEach(item => symToChar[item.sym] = item.char);
 
-  // Génération du clavier
   sauvakAlphabet.forEach(item => {
     const key = document.createElement('div');
     key.className = 'key';
@@ -258,26 +254,22 @@
     keyboard.appendChild(key);
   });
 
-  // --- LOGIQUE DE FRAPPE ---
   function addChar(char) {
-    if (isRevealed) return; // BLOCAGE PENDANT LA RÉVÉLATION
+    if (isRevealed) return; 
     input.value += char;
     statusMsg.innerText = "";
     statusMsg.style.color = "#000080";
-    
-    // Fait défiler le texte automatiquement vers le bas à chaque frappe
     input.scrollTop = input.scrollHeight;
   }
 
-  // --- ANTI-CORRECTION (Supprime TOUT) ---
-  function nukeText() {
+  // Fonction de destruction acceptant un message d'erreur personnalisé
+  function nukeText(reasonMsg) {
     if (input.value.length === 0) return;
     input.value = "";
     statusMsg.style.color = "#d00000";
-    statusMsg.innerText = "Correction interdite. Le message a été entièrement détruit.";
+    statusMsg.innerHTML = reasonMsg;
   }
 
-  // --- RÉVÉLATION (1h cooldown, fige le clavier) ---
   const COOLDOWN_MS = 60 * 60 * 1000;
   
   function updateRevealButton() {
@@ -301,7 +293,7 @@
   function triggerReveal() {
     localStorage.setItem('lastRevealTimeWin95', Date.now());
     updateRevealButton();
-    isRevealed = true; // Empêche d'écrire
+    isRevealed = true; 
     
     const keys = document.querySelectorAll('.keyboard .key');
     keys.forEach(k => {
@@ -317,13 +309,12 @@
             k.textContent = k.dataset.sym;
             k.classList.remove('disabled');
         });
-        isRevealed = false; // Réactive l'écriture
+        isRevealed = false; 
         statusMsg.style.color = "#000080";
         statusMsg.innerText = "Le clavier est à nouveau actif.";
     }, 20000);
   }
 
-  // --- TRADUCTION & VALIDATION ---
   function translateToFrench(text) {
     let result = '';
     for (let char of text) {
@@ -337,29 +328,40 @@
 
     const symText = input.value;
     const frText = translateToFrench(symText);
-    const wordCount = frText.trim().split(/\s+/).filter(w => w.length > 0).length;
+    
+    // Compte les mots correctement même avec la ponctuation
+    const words = frText.trim().replace(/[.,'?]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+    const wordCount = words.length;
 
-    // Vérifications
+    // 1. Vérification du nombre de mots
     if (wordCount < 30) {
-        nukeText();
-        statusMsg.innerText = `Refusé. Manque de mots (${wordCount}/30). Message détruit.`;
+        nukeText(`❌ <b>Refusé :</b> Mots insuffisants (${wordCount}/30).<br>Votre message a été détruit.`);
         return;
     }
 
-    if (!frText.includes("je vous vénère mon maître")) {
-        nukeText();
-        statusMsg.innerText = "Refusé. Phrase d'allégeance absente/fausse. Message détruit.";
+    // 2. Vérification de la phrase exacte
+    const targetPhrase = "je vous vénère mon maître";
+    
+    if (!frText.includes(targetPhrase)) {
+        // Diagnostic : On cherche à savoir s'il a écrit la phrase sans les accents
+        const textSansAccents = frText.replace(/[éè]/g, 'e').replace(/[î]/g, 'i').replace(/[à]/g, 'a');
+        const targetSansAccents = "je vous venere mon maitre";
+        
+        if (textSansAccents.includes(targetSansAccents)) {
+            nukeText(`❌ <b>Refusé :</b> Faute d'accentuation !<br>Avez-vous bien mis les accents (é, è, î) sur "vénère" et "maître" ? Message détruit.`);
+        } else {
+            nukeText(`❌ <b>Refusé :</b> La phrase exacte est introuvable ou mal orthographiée.<br>Vous avez fait une faute de frappe. Message détruit.`);
+        }
         return;
     }
 
-    // Création du bloc final avec la traduction
+    // Succès
     const finalMessage = `${symText}\n\n--- TRADUCTION ---\n${frText}`;
 
-    // Copie et Auto-Destruction immédiate
     navigator.clipboard.writeText(finalMessage).then(() => {
-        input.value = ""; // AUTO-DESTRUCTION SUR L'ÉCRAN
+        input.value = ""; 
         statusMsg.style.color = "#008000";
-        statusMsg.innerText = "Valide. Message copié avec sa traduction. Il s'est effacé de l'écran.";
+        statusMsg.innerText = "✅ Valide. Message copié avec sa traduction. L'écran a été purgé.";
     });
   }
 </script>
