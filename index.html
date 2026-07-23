@@ -203,13 +203,10 @@
     <div class="warning">Frappe bloquée pendant l'apprentissage. La traduction n'apparaît qu'à la copie.</div>
   </div>
 
-  <!-- NOUVEAU : Suivi des conditions en direct -->
+  <!-- Suivi des conditions en direct -->
   <div class="checklist">
     <div class="check-item">
       <span class="dot" id="dot-words">🔴</span> Minimum 30 mots (<span id="word-count">0</span>/30)
-    </div>
-    <div class="check-item">
-      <span class="dot" id="dot-phrase">🔴</span> Phrase d'allégeance exacte : "je vous vénère mon maître"
     </div>
   </div>
 
@@ -287,7 +284,7 @@
     keyboard.appendChild(key);
   });
 
-  // --- ANALYSE EN TEMPS RÉEL (NOUVEAU) ---
+  // --- ANALYSE EN TEMPS RÉEL ---
   function updateChecklist() {
     const frText = translateToFrench(input.value);
     
@@ -301,14 +298,6 @@
     } else {
         document.getElementById('dot-words').innerText = '🔴';
     }
-
-    // Vérification de la phrase
-    const targetPhrase = "je vous vénère mon maître";
-    if (frText.includes(targetPhrase)) {
-        document.getElementById('dot-phrase').innerText = '🟢';
-    } else {
-        document.getElementById('dot-phrase').innerText = '🔴';
-    }
   }
 
   // --- LOGIQUE DE FRAPPE ---
@@ -319,7 +308,6 @@
     statusMsg.style.color = "#000080";
     input.scrollTop = input.scrollHeight;
     
-    // Met à jour les points verts
     updateChecklist();
   }
 
@@ -330,7 +318,6 @@
     statusMsg.style.color = "#d00000";
     statusMsg.innerHTML = reasonMsg;
     
-    // Remet les points au rouge
     updateChecklist();
   }
 
@@ -395,23 +382,10 @@
     const frText = translateToFrench(input.value);
     const words = frText.trim().replace(/[.,'?]/g, ' ').split(/\s+/).filter(w => w.length > 0);
     const wordCount = words.length;
-    const targetPhrase = "je vous vénère mon maître";
 
-    // Re-vérification de sécurité au cas où
+    // Re-vérification de sécurité
     if (wordCount < 30) {
-        nukeText(`❌ <b>Refusé :</b> Tous les points verts ne sont pas allumés (Mots : ${wordCount}/30).`);
-        return;
-    }
-
-    if (!frText.includes(targetPhrase)) {
-        const textSansAccents = frText.replace(/[éè]/g, 'e').replace(/[î]/g, 'i').replace(/[à]/g, 'a');
-        const targetSansAccents = "je vous venere mon maitre";
-        
-        if (textSansAccents.includes(targetSansAccents)) {
-            nukeText(`❌ <b>Refusé :</b> Faute d'accentuation ! Vous n'avez pas de point vert.`);
-        } else {
-            nukeText(`❌ <b>Refusé :</b> La phrase est mal orthographiée. Pas de point vert.`);
-        }
+        nukeText(`❌ <b>Refusé :</b> Le point vert n'est pas allumé (Mots : ${wordCount}/30).`);
         return;
     }
 
@@ -420,7 +394,7 @@
 
     navigator.clipboard.writeText(finalMessage).then(() => {
         input.value = ""; 
-        updateChecklist(); // Remet les compteurs à zéro
+        updateChecklist(); 
         statusMsg.style.color = "#008000";
         statusMsg.innerText = "✅ Valide. Message copié avec sa traduction. L'écran a été purgé.";
     });
