@@ -52,10 +52,35 @@
     margin-top: 5px;
   }
 
+  /* Tableau de bord des conditions */
+  .checklist {
+    background: #fff;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .check-item {
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .dot {
+    margin-right: 8px;
+    font-size: 16px;
+  }
+
   .textarea-wrapper {
     flex-grow: 1; 
     min-height: 80px;
-    max-height: 250px; 
+    max-height: 200px; 
     margin-bottom: 10px;
     background: #fff;
     border-top: 2px solid #808080;
@@ -84,8 +109,8 @@
   #status-msg {
     color: #000080;
     font-weight: bold;
-    height: 40px; /* Agrandi pour pouvoir afficher deux lignes d'erreur si besoin */
-    margin-bottom: 10px;
+    height: 40px; 
+    margin-bottom: 5px;
     font-size: 13px;
     text-align: center;
     flex-shrink: 0;
@@ -174,10 +199,18 @@
 <div class="container">
   
   <div class="instructions">
-    <strong>Protocoles requis :</strong><br>
-    - Minimum 30 mots.<br>
-    - Inclure exactement : "je vous vénère mon maître"<br>
-    <div class="warning">⚠️ Règle stricte : Toute correction (⌫) efface le message. Frappe bloquée pendant l'apprentissage. La traduction n'apparaît qu'à la copie.</div>
+    <strong>Règle stricte :</strong> Toute correction (⌫) efface le message complet.
+    <div class="warning">Frappe bloquée pendant l'apprentissage. La traduction n'apparaît qu'à la copie.</div>
+  </div>
+
+  <!-- NOUVEAU : Suivi des conditions en direct -->
+  <div class="checklist">
+    <div class="check-item">
+      <span class="dot" id="dot-words">🔴</span> Minimum 30 mots (<span id="word-count">0</span>/30)
+    </div>
+    <div class="check-item">
+      <span class="dot" id="dot-phrase">🔴</span> Phrase d'allégeance exacte : "je vous vénère mon maître"
+    </div>
   </div>
 
   <div class="textarea-wrapper">
@@ -254,22 +287,54 @@
     keyboard.appendChild(key);
   });
 
+  // --- ANALYSE EN TEMPS RÉEL (NOUVEAU) ---
+  function updateChecklist() {
+    const frText = translateToFrench(input.value);
+    
+    // Vérification des mots
+    const words = frText.trim().replace(/[.,'?]/g, ' ').split(/\s+/).filter(w => w.length > 0);
+    const wordCount = words.length;
+    document.getElementById('word-count').innerText = wordCount;
+    
+    if (wordCount >= 30) {
+        document.getElementById('dot-words').innerText = '🟢';
+    } else {
+        document.getElementById('dot-words').innerText = '🔴';
+    }
+
+    // Vérification de la phrase
+    const targetPhrase = "je vous vénère mon maître";
+    if (frText.includes(targetPhrase)) {
+        document.getElementById('dot-phrase').innerText = '🟢';
+    } else {
+        document.getElementById('dot-phrase').innerText = '🔴';
+    }
+  }
+
+  // --- LOGIQUE DE FRAPPE ---
   function addChar(char) {
     if (isRevealed) return; 
     input.value += char;
     statusMsg.innerText = "";
     statusMsg.style.color = "#000080";
     input.scrollTop = input.scrollHeight;
+    
+    // Met à jour les points verts
+    updateChecklist();
   }
 
-  // Fonction de destruction acceptant un message d'erreur personnalisé
+  // Fonction de destruction
   function nukeText(reasonMsg) {
     if (input.value.length === 0) return;
     input.value = "";
     statusMsg.style.color = "#d00000";
     statusMsg.innerHTML = reasonMsg;
+    
+    // Remet les points au rouge
+    updateChecklist();
   }
 
+  // --- GESTION DE LA RÉVÉLATION ---
   const COOLDOWN_MS = 60 * 60 * 1000;
   
   function updateRevealButton() {
@@ -323,43 +388,39 @@
     return result;
   }
 
+  // --- VALIDATION FINALE ---
   function submitAndCopy() {
     if (input.value.length === 0) return;
 
-    const symText = input.value;
-    const frText = translateToFrench(symText);
-    
-    // Compte les mots correctement même avec la ponctuation
+    const frText = translateToFrench(input.value);
     const words = frText.trim().replace(/[.,'?]/g, ' ').split(/\s+/).filter(w => w.length > 0);
     const wordCount = words.length;
+    const targetPhrase = "je vous vénère mon maître";
 
-    // 1. Vérification du nombre de mots
+    // Re-vérification de sécurité au cas où
     if (wordCount < 30) {
-        nukeText(`❌ <b>Refusé :</b> Mots insuffisants (${wordCount}/30).<br>Votre message a été détruit.`);
+        nukeText(`❌ <b>Refusé :</b> Tous les points verts ne sont pas allumés (Mots : ${wordCount}/30).`);
         return;
     }
 
-    // 2. Vérification de la phrase exacte
-    const targetPhrase = "je vous vénère mon maître";
-    
     if (!frText.includes(targetPhrase)) {
-        // Diagnostic : On cherche à savoir s'il a écrit la phrase sans les accents
         const textSansAccents = frText.replace(/[éè]/g, 'e').replace(/[î]/g, 'i').replace(/[à]/g, 'a');
         const targetSansAccents = "je vous venere mon maitre";
         
         if (textSansAccents.includes(targetSansAccents)) {
-            nukeText(`❌ <b>Refusé :</b> Faute d'accentuation !<br>Avez-vous bien mis les accents (é, è, î) sur "vénère" et "maître" ? Message détruit.`);
+            nukeText(`❌ <b>Refusé :</b> Faute d'accentuation ! Vous n'avez pas de point vert.`);
         } else {
-            nukeText(`❌ <b>Refusé :</b> La phrase exacte est introuvable ou mal orthographiée.<br>Vous avez fait une faute de frappe. Message détruit.`);
+            nukeText(`❌ <b>Refusé :</b> La phrase est mal orthographiée. Pas de point vert.`);
         }
         return;
     }
 
     // Succès
-    const finalMessage = `${symText}\n\n--- TRADUCTION ---\n${frText}`;
+    const finalMessage = `${input.value}\n\n--- TRADUCTION ---\n${frText}`;
 
     navigator.clipboard.writeText(finalMessage).then(() => {
         input.value = ""; 
+        updateChecklist(); // Remet les compteurs à zéro
         statusMsg.style.color = "#008000";
         statusMsg.innerText = "✅ Valide. Message copié avec sa traduction. L'écran a été purgé.";
     });
